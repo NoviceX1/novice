@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบยืนยันตัวตน</title>
+    <style>
+        /* Shared Styles */
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .particles-background {
+            position: fixed; /* Use fixed to keep it in background without affecting scroll */
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 70%);
+        }
+
+        .container, .admin-container {
+            position: relative;
+            z-index: 1;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            color: #eee;
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        select {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid;
+            border-radius: 5px;
+            background-color: #333;
+            color: #eee;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid;
+            border-radius: 5px;
+            background-color: #333;
+            color: #eee;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        select:focus,
+        input[type="file"]:focus {
+            box-shadow: 0 0 8px;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .message.success {
+            color: #4CAF50;
+        }
+
+        .message.error {
+            color: #F44336;
+        }
+
+        /* Public Page Styles */
+        #publicPage {
+            background-color: rgba(25, 25, 25, 0.9);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); /* Yellow glow */
+            max-width: 500px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        #publicPage h1 {
+            color: #FFD700; /* Gold */
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
+        }
+
+        #publicPage .subtitle {
+            text-align: center;
+            color: #ccc;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        #publicPage label {
+            color: #FFC107; /* Amber */
+        }
+
+        #publicPage input[type="text"],
+        #publicPage input[type="email"],
+        #publicPage select,
+        #publicPage input[type="file"] {
+            border-color: #FFA500; /* Orange */
+        }
+
+        #publicPage input[type="text"]:focus,
+        #publicPage input[type="email"]:focus,
+        #publicPage select:focus,
+        #publicPage input[type="file"]:focus {
+            border-color: #FFD700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+
+        .image-note {
+            font-size: 0.85em;
+            color: #FF8C00; /* Dark Orange */
+            margin-top: 5px;
+        }
+
+        .submit-button {
+            background-color: #FFA500; /* Orange */
+            color: #1a1a1a;
+        }
+
+        .submit-button:hover {
+            background-color: #FFD700; /* Gold on hover */
+        }
+
+        /* Admin Page Styles */
+        #adminPage {
+            background-color: #1a1a1a;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5); /* Red glow */
+            max-width: 1000px;
+        }
+
+        #adminPage .admin-header {
+            color: #FF0000; /* Red */
+            text-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
+            margin-bottom: 30px;
+        }
+
+        #adminPage h2 {
+            color: #FF6347; /* Tomato Red */
+            margin-top: 0;
+        }
+
+        #adminPage label {
+            color: #FF8C00; /* Dark Orange - for labels in admin for slight variation */
+        }
+
+        #adminPage input[type="text"],
+        #adminPage input[type="password"],
+        #adminPage input[type="email"],
+        #adminPage input[type="number"],
+        #adminPage select {
+            border-color: #666;
+        }
+
+        #adminPage input[type="text"]:focus,
+        #adminPage input[type="password"]:focus,
+        #adminPage input[type="email"]:focus,
+        #adminPage input[type="number"]:focus,
+        #adminPage select:focus {
+            border-color: #FF0000;
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+        }
+
+        .login-button, .save-button, .delete-button, .logout-button {
+            margin-right: 10px;
+        }
+
+        .login-button {
+            background-color: #FF0000; /* Red */
+            color: #fff;
+        }
+        .login-button:hover { background-color: #CC0000; }
+
+        .logout-button {
+            background-color: #555;
+            color: #fff;
+            float: right;
+            margin-bottom: 20px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+        .logout-button:hover { background-color: #777; }
+
+        #identityTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #identityTable th, #identityTable td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: left;
+        }
+
+        #identityTable th {
+            background-color: #333;
+            color: #FF6347;
+        }
+
+        #identityTable td {
+            background-color: #222;
+        }
+
+        #identityTable tr:hover td {
+            background-color: #2a2a2a;
+        }
+
+        .action-buttons button {
+            padding: 5px 10px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+            width: auto; /* Override 100% width for action buttons */
+        }
+
+        .action-buttons .view-button {
+            background-color: #007bff; /* Blue */
+            color: white;
+        }
+        .action-buttons .view-button:hover { background-color: #0056b3; }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .save-button {
+            background-color: #28a745; /* Green */
+            color: white;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+        .save-button:hover { background-color: #218838; }
+
+        .delete-button {
+            background-color: #dc3545; /* Red */
+            color: white;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+        .delete-button:hover { background-color: #c82333; }
+
+        .image-display-group img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+
+        /* Global animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js" class="particles-background"></div>
+
+    <div style="text-align: center; margin-top: 20px; position: relative; z-index: 2;">
+        <button id="showPublicPage" style="background-color: #FFA500; color: #1a1a1a; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">หน้าผู้ใช้ทั่วไป</button>
+        <button id="showAdminPage" style="background-color: #FF0000; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">หน้า Admin</button>
+    </div>
+
+    <div id="publicPage" class="container">
+        <h1>ยืนยันตัวตน</h1>
+        <p class="subtitle">( บุคคลที่เข้าถึงทั่วไปไม่จำเป็นต้องลงชื่อเข้าใช้ )</p>
+
+        <form id="identityForm">
+            <div class="form-group">
+                <label for="email">อีเมล (*ต้องใช้อีเมลที่ติดต่อได้เท่านั้น*)</label>
+                <input type="email" id="email" required placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label for="name">ชื่อ (*ไม่จำเป็นต้องเป็นชื่อจริง*)</label>
+                <input type="text" id="name" required placeholder="ชื่อของคุณ">
+            </div>
+            <div class="form-group">
+                <label for="age">อายุ (*โปรดใส่ข้อมูลตามจริง*)</label>
+                <select id="age" required>
+                    <option value="">เลือกอายุ</option>
+                    </select>
+            </div>
+            <div class="form-group">
+                <label for="type">แบบไหน</label>
+                <select id="type" required>
+                    <option value="">เลือกประเภท</option>
+                    <option value="รุก">รุก</option>
+                    <option value="รับ">รับ</option>
+                    <option value="โบท">โบท</option>
+                    <option value="ไบท์">ไบท์</option>
+                    <option value="ชายแท้">ชายแท้</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="image">รูปแบบการยืนยัน รูปภาพประกอบ</label>
+                <input type="file" id="image" accept="image/*" required>
+                <p class="image-note">(รูปชู 2 นิ้ว กับ ห ร ร ม ของท่าน)</p>
+            </div>
+            <button type="submit" class="submit-button">ยืนยันตัวตน</button>
+        </form>
+        <p id="message" class="message"></p>
+    </div>
+
+    <div id="adminPage" class="admin-container" style="display: none;">
+        <h1 class="admin-header">Admin Panel</h1>
+
+        <div id="adminLogin" class="admin-section login-section">
+            <h2>เข้าสู่ระบบ Admin</h2>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="adminUsername">Username:</label>
+                    <input type="text" id="adminUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password:</label>
+                    <input type="password" id="adminPassword" required>
+                </div>
+                <button type="submit" class="login-button">Login</button>
+            </form>
+            <p id="adminMessage" class="message"></p>
+        </div>
+
+        <div id="adminDashboard" class="admin-section dashboard-section" style="display: none;">
+            <h2>ประวัติการยืนยันตัวตน</h2>
+            <button id="adminLogout" class="logout-button">Logout</button>
+            <table id="identityTable">
+                <thead>
+                    <tr>
+                        <th>ชื่อ</th>
+                        <th>อายุ</th>
+                        <th>แบบไหน</th>
+                        <th>เวลายืนยัน</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+
+        <div id="detailModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>รายละเอียด/แก้ไขข้อมูล</h2>
+                <form id="detailForm">
+                    <div class="form-group">
+                        <label for="detailEmail">อีเมล:</label>
+                        <input type="email" id="detailEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailName">ชื่อ:</label>
+                        <input type="text" id="detailName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailAge">อายุ:</label>
+                        <input type="number" id="detailAge" min="10" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="detailType">แบบไหน:</label>
+                        <select id="detailType" required>
+                            <option value="รุก">รุก</option>
+                            <option value="รับ">รับ</option>
+                            <option value="โบท">โบท</option>
+                            <option value="ไบท์">ไบท์</option>
+                            <option value="ชายแท้">ชายแท้</option>
+                        </select>
+                    </div>
+                    <div class="form-group image-display-group">
+                        <label>รูปภาพประกอบ:</label>
+                        <img id="detailImage" src="" alt="Identity Image" style="max-width: 100%; height: auto; margin-top: 10px;">
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="save-button">บันทึก</button>
+                        <button type="button" id="deleteButton" class="delete-button">ลบ</button>
+                    </div>
+                </form>
+                <p id="detailMessage" class="message"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- UI Elements ---
+            const publicPage = document.getElementById('publicPage');
+            const adminPage = document.getElementById('adminPage');
+            const showPublicPageButton = document.getElementById('showPublicPage');
+            const showAdminPageButton = document.getElementById('showAdminPage');
+
+            // Public Page Elements
+            const ageSelect = document.getElementById('age');
+            const identityForm = document.getElementById('identityForm');
+            const messageDiv = document.getElementById('message');
+
+            // Admin Page Elements
+            const adminLoginSection = document.getElementById('adminLogin');
+            const adminDashboardSection = document.getElementById('adminDashboard');
+            const adminLoginForm = document.getElementById('adminLoginForm');
+            const adminMessage = document.getElementById('adminMessage');
+            const adminLogoutButton = document.getElementById('adminLogout');
+            const identityTableBody = document.querySelector('#identityTable tbody');
+            const detailModal = document.getElementById('detailModal');
+            const closeButton = document.querySelector('.close-button');
+            const detailForm = document.getElementById('detailForm');
+            const detailMessage = document.getElementById('detailMessage');
+            const deleteButton = document.getElementById('deleteButton');
+
+            const BASE_URL = 'http://localhost:5000/api'; // *** ตรวจสอบให้ตรงกับ Port ของ Backend ของคุณ ***
+            let currentIdentityId = null; // สำหรับเก็บ ID ของข้อมูลที่กำลังดู/แก้ไข
+
+            // --- Page Switching Logic ---
+            function showPage(pageId) {
+                publicPage.style.display = 'none';
+                adminPage.style.display = 'none';
+                document.getElementById(pageId).style.display = 'block';
+
+                if (pageId === 'adminPage') {
+                    checkLoginStatus(); // ตรวจสอบสถานะ login เมื่อเข้าหน้า admin
+                } else {
+                    // หากกลับไปหน้า public, reset message
+                    messageDiv.textContent = '';
+                    messageDiv.className = 'message';
+                }
+            }
+
+            showPublicPageButton.addEventListener('click', () => showPage('publicPage'));
+            showAdminPageButton.addEventListener('click', () => showPage('adminPage'));
+
+            // Initial page load
+            showPage('publicPage');
+
+            // --- Public Page Logic ---
+            // Populate Age dropdown
+            for (let i = 10; i <= 100; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                ageSelect.appendChild(option);
+            }
+
+            // Initialize Particles.js (same as previous example)
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                    "color": { "value": ["#FFD700", "#FFA500", "#FFC107"] },
+                    "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" } },
+                    "opacity": { "value": 0.5, "random": false },
+                    "size": { "value": 3, "random": true },
+                    "line_linked": { "enable": true, "distance": 150, "color": "#FFC107", "opacity": 0.4, "width": 1 },
+                    "move": { "enable": true, "speed": 3, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                    "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } }
+                },
+                "retina_detect": true
+            });
+
+            // Form submission handler for public page
+            identityForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('email', document.getElementById('email').value);
+                formData.append('name', document.getElementById('name').value);
+                formData.append('age', document.getElementById('age').value);
+                formData.append('type', document.getElementById('type').value);
+                formData.append('image', document.getElementById('image').files[0]);
+
+                try {
+                    const response = await fetch(`${BASE_URL}/identify`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        messageDiv.textContent = data.message;
+                        messageDiv.className = 'message success';
+                        identityForm.reset();
+                    } else {
+                        messageDiv.textContent = data.message || 'เกิดข้อผิดพลาดในการยืนยันตัวตน';
+                        messageDiv.className = 'message error';
+                    }
+                } catch (error) {
+                    console.error('Network error:', error);
+                    messageDiv.textContent = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้';
+                    messageDiv.className = 'message error';
+                }
+            });
+
+            // --- Admin Page Logic ---
+            function checkLoginStatus() {
+                const token = localStorage.getItem('adminToken');
+                if (token) {
+                    adminLoginSection.style.display = 'none';
+                    adminDashboardSection.style.display = 'block';
+                    fetchIdentities(); // Load data if logged in
+                } else {
+                    adminLoginSection.style.display = 'block';
+                    adminDashboardSection.style.display = 'none';
+                }
+            }
+
+            // Admin Login
+            adminLoginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('adminUsername').value;
+                const password = document.getElementById('adminPassword').value;
+
+                try {
+                    const response = await fetch(`${BASE_URL}/admin/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        localStorage.setItem('adminToken', data.token);
+                        adminMessage.textContent = data.message;
+                        adminMessage.className = 'message success';
+                        checkLoginStatus();
+                    } else {
+                        adminMessage.textContent = data.message || 'Login failed.';
+                        adminMessage.className = 'message error';
+                    }
+                } catch (error) {
+                    console.error('Login network error:', error);
+                    adminMessage.textContent = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้';
+                    adminMessage.className = 'message error';
+                }
+            });
+
+            // Admin Logout
+            adminLogoutButton.addEventListener('click', () => {
+                localStorage.removeItem('adminToken');
+                adminMessage.textContent = '';
+                checkLoginStatus();
+                identityTableBody.innerHTML = '';
+            });
+
+            // Fetch Identities for Admin Table
+            async function fetchIdentities() {
+                const token = localStorage.getItem('adminToken');
+                if (!token) return;
+
+                try {
+                    const response = await fetch(`${BASE_URL}/admin/identities`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 401 || response.status === 403) {
+                            localStorage.removeItem('adminToken');
+                            checkLoginStatus();
+                            adminMessage.textContent = 'Session หมดอายุ กรุณาเข้าสู่ระบบใหม่';
+                            adminMessage.className = 'message error';
+                        }
+                        throw new Error('Failed to fetch identities');
+                    }
+
+                    const identities = await response.json();
+                    displayIdentities(identities);
+
+                } catch (error) {
+                    console.error('Error fetching identities:', error);
+                    adminMessage.textContent = 'ไม่สามารถดึงข้อมูลได้';
+                    adminMessage.className = 'message error';
+                }
+            }
+
+            // Display Identities in Admin Table
+            function displayIdentities(identities) {
+                identityTableBody.innerHTML = '';
+                identities.forEach(identity => {
+                    const row = identityTableBody.insertRow();
+                    row.insertCell().textContent = identity.name;
+                    row.insertCell().textContent = identity.age;
+                    row.insertCell().textContent = identity.type;
+                    row.insertCell().textContent = new Date(identity.submissionDate).toLocaleString('th-TH');
+
+                    const actionsCell = row.insertCell();
+                    const viewButton = document.createElement('button');
+                    viewButton.textContent = 'ดู/แก้ไข';
+                    viewButton.className = 'view-button action-buttons';
+                    viewButton.addEventListener('click', () => openDetailModal(identity._id));
+                    actionsCell.appendChild(viewButton);
+                });
+            }
+
+            // Open Detail/Edit Modal
+            async function openDetailModal(id) {
+                currentIdentityId = id;
+                detailMessage.textContent = '';
+                const token = localStorage.getItem('adminToken');
+
+                try {
+                    const response = await fetch(`${BASE_URL}/admin/identities/${id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                         if (response.status === 401 || response.status === 403) {
+                            localStorage.removeItem('adminToken');
+                            checkLoginStatus();
+                            adminMessage.textContent = 'Session หมดอายุ กรุณาเข้าสู่ระบบใหม่';
+                            adminMessage.className = 'message error';
+                        }
+                        throw new Error('Failed to fetch identity details');
+                    }
+
+                    const identity = await response.json();
+                    document.getElementById('detailEmail').value = identity.email;
+                    document.getElementById('detailName').value = identity.name;
+                    document.getElementById('detailAge').value = identity.age;
+                    document.getElementById('detailType').value = identity.type;
+                    
+                    const detailImage = document.getElementById('detailImage');
+                    if (identity.imagePath) {
+                        // Ensure the path is correct for frontend display
+                        detailImage.src = `${BASE_URL.replace('/api', '')}/${identity.imagePath.replace(/\\/g, '/')}`;
+                        detailImage.style.display = 'block';
+                    } else {
+                        detailImage.style.display = 'none';
+                    }
+
+                    detailModal.style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error fetching detail:', error);
+                    detailMessage.textContent = 'ไม่สามารถดึงรายละเอียดได้';
+                    detailMessage.className = 'message error';
+                }
+            }
+
+            // Close Detail/Edit Modal
+            closeButton.addEventListener('click', () => {
+                detailModal.style.display = 'none';
+                currentIdentityId = null;
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == detailModal) {
+                    detailModal.style.display = 'none';
+                    currentIdentityId = null;
+                }
+            });
+
+            // Save/Update Identity
+            detailForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const token = localStorage.getItem('adminToken');
+                if (!currentIdentityId || !token) return;
+
+                const updatedData = {
+                    email: document.getElementById('detailEmail').value,
+                    name: document.getElementById('detailName').value,
+                    age: document.getElementById('detailAge').value,
+                    type: document.getElementById('detailType').value
+                };
+
+                try {
+                    const response = await fetch(`${BASE_URL}/admin/identities/${currentIdentityId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(updatedData)
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        detailMessage.textContent = data.message;
+                        detailMessage.className = 'message success';
+                        fetchIdentities();
+                    } else {
+                        detailMessage.textContent = data.message || 'เกิดข้อผิดพลาดในการบันทึก';
+                        detailMessage.className = 'message error';
+                    }
+                } catch (error) {
+                    console.error('Error updating identity:', error);
+                    detailMessage.textContent = 'ไม่สามารถบันทึกข้อมูลได้';
+                    detailMessage.className = 'message error';
+                }
+            });
+
+            // Delete Identity
+            deleteButton.addEventListener('click', async () => {
+                if (!currentIdentityId) return;
+
+                if (confirm('คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
+                    const token = localStorage.getItem('adminToken');
+                    try {
+                        const response = await fetch(`${BASE_URL}/admin/identities/${currentIdentityId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        const data = await response.json();
+                        if (response.ok) {
+                            alert(data.message);
+                            detailModal.style.display = 'none';
+                            fetchIdentities();
+                        } else {
+                            alert(data.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+                        }
+                    } catch (error) {
+                        console.error('Error deleting identity:', error);
+                        alert('ไม่สามารถลบข้อมูลได้');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
